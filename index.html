@@ -1,0 +1,196 @@
+<canvas id="canvas" width="500" height="500"></canvas>
+<script>
+  const canvas = document.getElementById("canvas");
+  const context = canvas.getContext("2d");
+
+  let trackLength;
+  const LANES = 3;
+  const rumbleLength = 3;
+  const segmentLength = 200;
+  let segments = [];
+  const TOTAL_SEGMENTS = 500;
+  let speed = 0;
+
+  function initializeRoadSegments() {
+    segments = [];
+    for(var n = 0 ; n < TOTAL_SEGMENTS ; n++) {
+      segments.push({
+         index: n,
+         z1: n * segmentLength,
+         z2: (n+1) * segmentLength,
+         showLaneStripe: Math.floor(n/rumbleLength)%2 ? true : false,
+         rumbleColor: Math.floor(n/rumbleLength)%2 ? 'red' : 'white',
+      });
+    }
+    trackLength = segments.length * segmentLength;
+  }
+
+  function convertRoadTo2d(z, currentZPosition, isLooped, trackLength) {
+    const cameraY = canvas.height - 50;
+    const cameraZ = isLooped ? currentZPosition - trackLength : currentZPosition;
+    const fieldOfView = 100;
+    const cameraDepth = 1 / Math.tan((fieldOfView/2) * Math.PI/180);
+    const roadWidth = 1000;
+    const translatedX = 0;
+    const translatedY = -cameraY;
+    const translatedZ = Math.abs(z - cameraZ);
+    const scale = cameraDepth/translatedZ;
+    return {
+      x: Math.round((canvas.width/2)  + (scale * translatedX  * canvas.width/2)),
+      y: Math.round((canvas.height/2) - (scale * translatedY  * canvas.height/2)),
+      w: Math.round((scale * roadWidth   * canvas.width/2)),
+    };
+  };
+
+  initializeRoadSegments();
+  let currentZPosition = 0;
+  let baseSegment = segments[currentZPosition];
+  const drawDistance = 300;
+
+  function renderLoop() {
+    // Sky
+    context.fillStyle = 'lightblue';
+    context.fillRect(0,0,canvas.width, canvas.height);
+    // TODO render scenery/background
+
+    currentZPosition += speed;
+    if (currentZPosition > trackLength) {
+      currentZPosition -= trackLength;
+    }
+
+    for(n = 0 ; n < drawDistance ; n++) {
+      segment = segments[(baseSegment.index + n) % segments.length];
+      const isLooped = segment.index < baseSegment.index;
+      const segment2D_1 = convertRoadTo2d(segment.z1, currentZPosition, isLooped, trackLength);
+      const segment2D_2 = convertRoadTo2d(segment.z2, currentZPosition, isLooped, trackLength);
+
+      context.fillStyle = 'green';
+      context.fillRect(0, segment2D_2.y, canvas.width, segment2D_1.y - segment2D_2.y);
+      const rumbleWidth1 = segment2D_1.w/6;
+      const rumbleWidth2 = segment2D_2.w/6;
+      
+      // left rumble
+      drawShape({
+        x1: segment2D_1.x - segment2D_1.w - rumbleWidth1,
+        y1: segment2D_1.y,
+        x2: segment2D_1.x - segment2D_1.w,
+        y2: segment2D_1.y,
+        x3: segment2D_2.x - segment2D_2.w,
+        y3: segment2D_2.y,
+        x4: segment2D_2.x - segment2D_2.w - rumbleWidth2,
+        y4: segment2D_2.y,
+        color: segment.rumbleColor,
+      });
+      // right rumble
+      drawShape({
+        x1: segment2D_1.x + segment2D_1.w + rumbleWidth1,
+        y1: segment2D_1.y,
+        x2: segment2D_1.x + segment2D_1.w,
+        y2: segment2D_1.y,
+        x3: segment2D_2.x + segment2D_2.w,
+        y3: segment2D_2.y,
+        x4: segment2D_2.x + segment2D_2.w + rumbleWidth2,
+        y4: segment2D_2.y,
+        color: segment.rumbleColor,
+      });
+      // road
+      drawShape({
+        x1: segment2D_1.x - segment2D_1.w,
+        y1: segment2D_1.y,
+        x2: segment2D_1.x + segment2D_1.w,
+        y2: segment2D_1.y,
+        x3: segment2D_2.x + segment2D_2.w,
+        y3: segment2D_2.y,
+        x4: segment2D_2.x - segment2D_2.w,
+        y4: segment2D_2.y,
+        color: 'gray',
+      });
+
+      if (segment.showLaneStripe) {
+        const laneMarkerWidth1 = segment2D_1.w/64;
+        const laneMarkerWidth2 = segment2D_2.w/64;
+        const laneWidth1 = segment2D_1.w * 2/LANES;
+        const laneWidth2 = segment2D_2.w * 2/LANES;
+        let laneX1 = segment2D_1.x - segment2D_1.w + laneWidth1;
+        let laneX2 = segment2D_2.x - segment2D_2.w + laneWidth2;
+        for(let lane = 1 ; lane < LANES ; lane++) {
+          // Lane stripe
+          drawShape({
+            x1: laneX1 - laneMarkerWidth1/2,
+            y1: segment2D_1.y,
+            x2: laneX1 + laneMarkerWidth1/2,
+            y2: segment2D_1.y,
+            x3: laneX2 + laneMarkerWidth2/2,
+            y3: segment2D_2.y,
+            x4: laneX2 - laneMarkerWidth2/2,
+            y4: segment2D_2.y,
+            color: 'white',
+          });
+          laneX1 += laneWidth1;
+          laneX2 += laneWidth2;
+        }
+      }
+
+      baseSegment = segments[Math.floor(currentZPosition/segmentLength) % segments.length];
+      // TODO render fog
+    }
+
+    // TODO shake car when going fast
+    // draw car
+    context.drawImage(
+      document.getElementById('carImage'),
+      canvas.width / 2 - 100,
+      canvas.height - 250,
+      200,
+      200,
+    );
+
+    // TODO draw speed indicator
+  }
+
+  setInterval(() => {
+    requestAnimationFrame(renderLoop);
+  }, 1000 / 30); // 30 FPS
+
+  // Decelerate over time
+  // TODO make this more natural
+  setInterval(() => {
+    if(speed > 0) {
+      speed--;
+    }
+  }, 3000);
+
+  function drawShape(shape) {
+    const {x1, y1, x2, y2, x3, y3, x4, y4, color} = shape;
+    context.fillStyle = color;
+    context.beginPath();
+    context.moveTo(x1, y1);
+    context.lineTo(x2, y2);
+    context.lineTo(x3, y3);
+    context.lineTo(x4, y4);
+    context.closePath();
+    context.fill();
+  }
+
+  document.addEventListener('keydown', keyDownHandler);
+
+  function keyDownHandler(event) {
+    switch (event.keyCode) {
+      // case 65: //Left(a)
+      //   break;
+      // case 68: //Right(d)
+      //   break;
+      case 83: //Down(s)
+        speed--;
+        break;
+      case 87: //Up(w)
+        speed++;
+        break;
+    }
+  }
+
+</script>
+<h1>Retro Racer</h1>
+<div>Hold W to accelerate</div>
+<div>Hold S to deccelerate</div>
+<img id="carImage" src="car.png" style="display:none"/>
