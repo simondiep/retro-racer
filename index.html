@@ -10,6 +10,21 @@
   let segments = [];
   const TOTAL_SEGMENTS = 500;
   let speed = 0;
+  const FPS = 30;
+
+  const maxSpeed = segmentLength * FPS;
+  const accel = maxSpeed/5;
+  const breaking = -maxSpeed;
+  const decel = -maxSpeed/5;
+  // const offRoadDecel = -maxSpeed/2;
+  // const offRoadLimit =  maxSpeed/4;
+
+  const keyPressed = {
+    UP: false,
+    DOWN: false,
+    // LEFT: false,
+    // RIGHT: false,
+  }
 
   function initializeRoadSegments() {
     segments = [];
@@ -52,6 +67,19 @@
     context.fillStyle = 'lightblue';
     context.fillRect(0,0,canvas.width, canvas.height);
     // TODO render scenery/background
+
+    if (keyPressed.UP)
+      speed = speed + (accel / FPS);
+    else if (keyPressed.DOWN)
+      speed = speed + (breaking / FPS);
+    else
+      speed = speed + (decel / FPS);
+
+    if (speed < 0) {
+      speed = 0;
+    } else if (speed > maxSpeed) {
+      speed = maxSpeed;
+    }
 
     currentZPosition += speed;
     if (currentZPosition > trackLength) {
@@ -150,15 +178,7 @@
 
   setInterval(() => {
     requestAnimationFrame(renderLoop);
-  }, 1000 / 30); // 30 FPS
-
-  // Decelerate over time
-  // TODO make this more natural
-  setInterval(() => {
-    if(speed > 0) {
-      speed--;
-    }
-  }, 3000);
+  }, 1000 / FPS);
 
   function drawShape(shape) {
     const {x1, y1, x2, y2, x3, y3, x4, y4, color} = shape;
@@ -181,10 +201,27 @@
       // case 68: //Right(d)
       //   break;
       case 83: //Down(s)
-        speed--;
+        keyPressed.DOWN = true;
         break;
       case 87: //Up(w)
-        speed++;
+        keyPressed.UP = true;
+        break;
+    }
+  }
+
+  document.addEventListener('keyup', keyUpHandler);
+
+  function keyUpHandler(event) {
+    switch (event.keyCode) {
+      // case 65: //Left(a)
+      //   break;
+      // case 68: //Right(d)
+      //   break;
+      case 83: //Down(s)
+        keyPressed.DOWN = false;
+        break;
+      case 87: //Up(w)
+        keyPressed.UP = false;
         break;
     }
   }
