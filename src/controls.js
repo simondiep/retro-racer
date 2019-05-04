@@ -6,26 +6,35 @@ import {
   DECEL_SPEED,
   OFFROAD_DECEL_SPEED,
   OFFROAD_MAX_SPEED,
-} from './config.js';
+} from "./config.js";
 
 const KEY_PRESSED = {
   UP: false,
   DOWN: false,
   LEFT: false,
   RIGHT: false,
-}
+};
 
-document.addEventListener('keydown', keyDownHandler);
-document.addEventListener('keyup', keyUpHandler);
+document.addEventListener("keydown", keyDownHandler);
+document.addEventListener("keyup", keyUpHandler);
+
+export function getCarImage() {
+  if (KEY_PRESSED.LEFT) {
+    return carTurnLeftImage;
+  } else if (KEY_PRESSED.RIGHT) {
+    return carTurnRightImage;
+  }
+  return carImage;
+}
 
 export function calculateNewPlayerHorizontalPosition(currentXPos, speed) {
   let newXPos = currentXPos;
-  const dx = (1/FPS) * 2 * (speed/MAX_SPEED);
+  const dx = (1 / FPS) * 2 * (speed / MAX_SPEED);
   if (KEY_PRESSED.LEFT) {
     newXPos = newXPos - dx;
-  }
-  else if (KEY_PRESSED.RIGHT)
+  } else if (KEY_PRESSED.RIGHT) {
     newXPos = newXPos + dx;
+  }
 
   // Limit how far in each direction you can be
   if (newXPos > 2) {
@@ -38,16 +47,13 @@ export function calculateNewPlayerHorizontalPosition(currentXPos, speed) {
 
 export function calculateNewSpeed(currentXPos, currentSpeed) {
   let newSpeed = currentSpeed;
-  if (KEY_PRESSED.UP)
-    newSpeed = newSpeed + (ACCEL_SPEED / FPS);
-  else if (KEY_PRESSED.DOWN)
-    newSpeed = newSpeed + (BREAKING_SPEED / FPS);
-  else
-    newSpeed = newSpeed + (DECEL_SPEED / FPS);
+  if (KEY_PRESSED.UP) newSpeed = newSpeed + ACCEL_SPEED / FPS;
+  else if (KEY_PRESSED.DOWN) newSpeed = newSpeed + BREAKING_SPEED / FPS;
+  else newSpeed = newSpeed + DECEL_SPEED / FPS;
 
   // offroad
-  if (((currentXPos < -1) || (currentXPos > 1)) && (newSpeed > OFFROAD_MAX_SPEED)) {
-    newSpeed = newSpeed + (OFFROAD_DECEL_SPEED / FPS);
+  if ((currentXPos < -1 || currentXPos > 1) && newSpeed > OFFROAD_MAX_SPEED) {
+    newSpeed = newSpeed + OFFROAD_DECEL_SPEED / FPS;
   }
 
   if (newSpeed < 0) {

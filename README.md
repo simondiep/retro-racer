@@ -1,6 +1,6 @@
 # Retro Racer
 
-
+A pseudo-3d racing sandbox game.
 
 ## Development notes
 
@@ -14,3 +14,7 @@ Nodejs and live-server are recommended if you want to develop and see live-updat
 npm i
 npm start
 ```
+
+## Inspiration
+
+https://codeincomplete.com/posts/javascript-racer/
