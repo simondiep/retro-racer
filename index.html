@@ -1,8 +1,15 @@
 <canvas id="canvas" width="500" height="500"></canvas>
 <script src="./src/main.js" type="module"></script>
-<h1>Retro Racer</h1>
-<div>WASD Controls</div>
-<div>Hold W to Accelerate</div>
-<img id="carImage" src="car.png" style="display:none" />
-<img id="carTurnLeftImage" src="car_turn_left.png" style="display:none" />
-<img id="carTurnRightImage" src="car_turn_right.png" style="display:none" />
+<div id="static-assets" style="display:none;">
+  <img id="carImage" src="assets/images/car.png" />
+
+  <img id="carTurnLeftImage" src="assets/images/car_turn_left.png" />
+  <img id="carTurnRightImage" src="assets/images/car_turn_right.png" />
+  <audio
+    id="music-background"
+    src="assets/sounds/The_Chip_Life_v1.0.mp3"
+    type="audio/mpeg"
+    autostart="0"
+    loop="true"
+  ></audio>
+</div>

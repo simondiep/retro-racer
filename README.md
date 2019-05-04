@@ -15,6 +15,12 @@ npm i
 npm start
 ```
 
-## Inspiration
+## Credits
+
+Idea inspired by Jake Gordon
 
 https://codeincomplete.com/posts/javascript-racer/
+
+Music from Josh Penn-Pierson
+
+https://github.com/OpenSourceMusic/The-Chip-Life

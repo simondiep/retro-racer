@@ -3,13 +3,15 @@ import { RUMBLE_LENGTH, SEGMENT_LENGTH, TOTAL_SEGMENTS } from "./config.js";
 export function createRoadSegments() {
   const segments = [];
   for (let n = 0; n < TOTAL_SEGMENTS; n++) {
+    const showLaneStripe = Math.floor(n / RUMBLE_LENGTH) % 2;
     segments.push({
       index: n,
       z1: n * SEGMENT_LENGTH,
       z2: (n + 1) * SEGMENT_LENGTH,
-      showLaneStripe: Math.floor(n / RUMBLE_LENGTH) % 2 ? true : false,
-      grassColor: Math.floor(n / RUMBLE_LENGTH) % 2 ? "#10AA10" : "#009A00",
-      rumbleColor: Math.floor(n / RUMBLE_LENGTH) % 2 ? "#555555" : "#BBBBBB",
+      showLaneStripe,
+      grassColor: showLaneStripe ? "#10AA10" : "#009A00",
+      roadColor: showLaneStripe ? "#6B6B6B" : "#696969",
+      rumbleColor: showLaneStripe ? "#555555" : "#BBBBBB",
     });
   }
   return segments;

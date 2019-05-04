@@ -1,3 +1,4 @@
+import { drawIntroScreen, drawShape } from "./canvas-view.js";
 import { LANES, SEGMENT_LENGTH, FPS, SHAKE_INTENSITY, MAX_SPEED, DRAW_DISTANCE } from "./config.js";
 import { calculateNewPlayerHorizontalPosition, calculateNewSpeed, getCarImage } from "./controls.js";
 import { createRoadSegments, convertZPositionRoadTo2dCoords } from "./road.js";
@@ -13,9 +14,27 @@ let playerHorizontalDistanceFromCenter = 0;
 let currentZPosition = 0;
 let baseSegment = segments[currentZPosition];
 
+drawIntroScreen();
+
+window.addEventListener("keydown", startGameEventListener);
+
+function startGameEventListener() {
+  window.removeEventListener("keydown", startGameEventListener);
+  playBackgroundMusic();
+  setInterval(() => {
+    requestAnimationFrame(renderLoop);
+  }, 1000 / FPS);
+}
+
+function playBackgroundMusic() {
+  const music = document.getElementById("music-background");
+  music.volume = 0.1;
+  music.play();
+}
+
 function renderLoop() {
   // Sky
-  context.fillStyle = "lightblue";
+  context.fillStyle = "#72D7EE";
   context.fillRect(0, 0, canvas.width, canvas.height);
   // TODO render scenery/background
 
@@ -84,12 +103,12 @@ function renderLoop() {
       y3: segment2D_2.y,
       x4: segment2D_2.x - segment2D_2.w,
       y4: segment2D_2.y,
-      color: "gray",
+      color: segment.roadColor,
     });
 
     if (segment.showLaneStripe) {
-      const laneMarkerWidth1 = segment2D_1.w / 64;
-      const laneMarkerWidth2 = segment2D_2.w / 64;
+      const laneMarkerWidth1 = segment2D_1.w / 32;
+      const laneMarkerWidth2 = segment2D_2.w / 32;
       const laneWidth1 = (segment2D_1.w * 2) / LANES;
       const laneWidth2 = (segment2D_2.w * 2) / LANES;
       let laneX1 = segment2D_1.x - segment2D_1.w + laneWidth1;
@@ -130,25 +149,9 @@ function renderLoop() {
   context.fillText("Distance: " + currentZPosition, 20, 40);
 }
 
-setInterval(() => {
-  requestAnimationFrame(renderLoop);
-}, 1000 / FPS);
-
 /**
  * Helper functions
  */
-
-function drawShape(shape) {
-  const { x1, y1, x2, y2, x3, y3, x4, y4, color } = shape;
-  context.fillStyle = color;
-  context.beginPath();
-  context.moveTo(x1, y1);
-  context.lineTo(x2, y2);
-  context.lineTo(x3, y3);
-  context.lineTo(x4, y4);
-  context.closePath();
-  context.fill();
-}
 
 function getRandom(min, max) {
   return Math.random() * (max - min) + min;
